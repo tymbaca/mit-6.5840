@@ -4,9 +4,13 @@ import (
 	"crypto/rand"
 	"math/big"
 	"strings"
+	"time"
 
 	"6.5840/labrpc"
+	"github.com/google/uuid"
 )
+
+const _retries = 5
 
 type Clerk struct {
 	server *labrpc.ClientEnd
@@ -38,9 +42,17 @@ func MakeClerk(server *labrpc.ClientEnd) *Clerk {
 // must match the declared types of the RPC handler function's
 // arguments. and reply must be passed as a pointer.
 func (ck *Clerk) Get(key string) string {
-	args := GetArgs{Key: key}
+	args := GetArgs{ID: uuid.New(), Key: key}
 	reply := GetReply{}
-	ok := ck.server.Call("KVServer.Get", &args, &reply)
+
+	var ok bool
+	for range _retries {
+		ok = ck.server.Call("KVServer.Get", &args, &reply)
+		if ok {
+			break
+		}
+		<-time.After(20 * time.Millisecond)
+	}
 	if !ok {
 		panic("can't get value from server")
 	}
@@ -57,9 +69,17 @@ func (ck *Clerk) Get(key string) string {
 // must match the declared types of the RPC handler function's
 // arguments. and reply must be passed as a pointer.
 func (ck *Clerk) PutAppend(key string, value string, op string) string {
-	args := PutAppendArgs{Key: key, Value: value}
+	args := PutAppendArgs{ID: uuid.New(), Key: key, Value: value}
 	reply := PutAppendReply{}
-	ok := ck.server.Call("KVServer."+op, &args, &reply)
+
+	var ok bool
+	for range _retries {
+		ok = ck.server.Call("KVServer."+op, &args, &reply)
+		if ok {
+			break
+		}
+		<-time.After(20 * time.Millisecond)
+	}
 	if !ok {
 		panic("can't " + strings.ToLower(op) + " value to server")
 	}

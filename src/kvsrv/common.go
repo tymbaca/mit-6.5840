@@ -1,7 +1,10 @@
 package kvsrv
 
+import "github.com/google/uuid"
+
 // Put or Append
 type PutAppendArgs struct {
+	ID    uuid.UUID
 	Key   string
 	Value string
 	// You'll have to add definitions here.
@@ -14,6 +17,7 @@ type PutAppendReply struct {
 }
 
 type GetArgs struct {
+	ID  uuid.UUID
 	Key string
 	// You'll have to add definitions here.
 }
