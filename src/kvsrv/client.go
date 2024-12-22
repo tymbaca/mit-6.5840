@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const _retries = 5
+const _retries = 10
 
 type Clerk struct {
 	server *labrpc.ClientEnd
@@ -51,7 +51,7 @@ func (ck *Clerk) Get(key string) string {
 		if ok {
 			break
 		}
-		<-time.After(20 * time.Millisecond)
+		<-time.After(10 * time.Millisecond)
 	}
 	if !ok {
 		panic("can't get value from server")
@@ -78,7 +78,7 @@ func (ck *Clerk) PutAppend(key string, value string, op string) string {
 		if ok {
 			break
 		}
-		<-time.After(20 * time.Millisecond)
+		<-time.After(10 * time.Millisecond)
 	}
 	if !ok {
 		panic("can't " + strings.ToLower(op) + " value to server")
