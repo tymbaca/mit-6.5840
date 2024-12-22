@@ -60,7 +60,7 @@ func (ck *Clerk) Get(key string) string {
 	reply := GetReply{}
 
 	var ok bool
-	for range _retries {
+	for i := 0; i < _retries; i++ {
 		ok = ck.server.Call("KVServer.Get", &args, &reply)
 		if ok {
 			break
@@ -92,7 +92,7 @@ func (ck *Clerk) PutAppend(key string, value string, op string) string {
 	reply := PutAppendReply{}
 
 	var ok bool
-	for range _retries {
+	for i := 0; i < _retries; i++ {
 		ok = ck.server.Call("KVServer."+op, &args, &reply)
 		if ok {
 			break
