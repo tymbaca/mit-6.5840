@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"math/big"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"6.5840/labrpc"
@@ -15,6 +16,8 @@ const _retries = 10
 type Clerk struct {
 	server *labrpc.ClientEnd
 	// You will have to modify this struct.
+	id  uuid.UUID
+	seq atomic.Uint64
 }
 
 func nrand() int64 {
@@ -27,8 +30,15 @@ func nrand() int64 {
 func MakeClerk(server *labrpc.ClientEnd) *Clerk {
 	ck := new(Clerk)
 	ck.server = server
+
 	// You'll have to add code here.
+	ck.id = uuid.New()
+
 	return ck
+}
+
+func (ck *Clerk) getSeq() uint64 {
+	return ck.seq.Add(1)
 }
 
 // fetch the current value for a key.
@@ -42,7 +52,11 @@ func MakeClerk(server *labrpc.ClientEnd) *Clerk {
 // must match the declared types of the RPC handler function's
 // arguments. and reply must be passed as a pointer.
 func (ck *Clerk) Get(key string) string {
-	args := GetArgs{ID: uuid.New(), Key: key}
+	args := GetArgs{
+		ClientID: ck.id,
+		Seq:      ck.getSeq(),
+		Key:      key,
+	}
 	reply := GetReply{}
 
 	var ok bool
@@ -51,7 +65,7 @@ func (ck *Clerk) Get(key string) string {
 		if ok {
 			break
 		}
-		<-time.After(10 * time.Millisecond)
+		<-time.After(20 * time.Millisecond)
 	}
 	if !ok {
 		panic("can't get value from server")
@@ -69,7 +83,12 @@ func (ck *Clerk) Get(key string) string {
 // must match the declared types of the RPC handler function's
 // arguments. and reply must be passed as a pointer.
 func (ck *Clerk) PutAppend(key string, value string, op string) string {
-	args := PutAppendArgs{ID: uuid.New(), Key: key, Value: value}
+	args := PutAppendArgs{
+		ClientID: ck.id,
+		Seq:      ck.getSeq(),
+		Key:      key,
+		Value:    value,
+	}
 	reply := PutAppendReply{}
 
 	var ok bool
@@ -78,7 +97,7 @@ func (ck *Clerk) PutAppend(key string, value string, op string) string {
 		if ok {
 			break
 		}
-		<-time.After(10 * time.Millisecond)
+		<-time.After(20 * time.Millisecond)
 	}
 	if !ok {
 		panic("can't " + strings.ToLower(op) + " value to server")

@@ -4,12 +4,13 @@ import "github.com/google/uuid"
 
 // Put or Append
 type PutAppendArgs struct {
-	ID    uuid.UUID
 	Key   string
 	Value string
 	// You'll have to add definitions here.
 	// Field names must start with capital letters,
 	// otherwise RPC will break.
+	ClientID uuid.UUID
+	Seq      uint64
 }
 
 type PutAppendReply struct {
@@ -17,9 +18,10 @@ type PutAppendReply struct {
 }
 
 type GetArgs struct {
-	ID  uuid.UUID
 	Key string
 	// You'll have to add definitions here.
+	ClientID uuid.UUID
+	Seq      uint64
 }
 
 type GetReply struct {
